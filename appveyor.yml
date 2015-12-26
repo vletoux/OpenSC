@@ -84,7 +84,7 @@ build_script:
           } Else {
              nmake -f win32/Makefile.msc AS=ml64 LOC="-DASMV -DASMINF -I." OBJA="inffasx64.obj gvmat64.obj inffas8664.obj" zlib.lib
           }
-          $env:NMAKE_EXTRA="ZLIB_DEF=/DENABLE_ZLIB_STATIC ${env:NMAKE_EXTRA}"
+          $env:NMAKE_EXTRA="ZLIBSTATIC_DEF=/DENABLE_ZLIB_STATIC ${env:NMAKE_EXTRA}"
           cd c:\projects\Opensc
       }
   - bash -c "exec 0</dev/null && ./bootstrap"
