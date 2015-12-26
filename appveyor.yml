@@ -99,7 +99,7 @@ build_script:
   - ps: >-
        if (!($env:Configuration -Like "*Debug*")) {
           Get-ChildItem -recurse . *.pdb | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
-	   }
+       }
 
 cache:
   - C:\OpenSSL-Win32
