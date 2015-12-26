@@ -75,16 +75,16 @@ install:
 
 build_script:
   - ps: >-
-    if (!($env:Configuration -Like "*Light*")) {
-        cd C:\zlib
-        If ($env:Platform -Match "x86") {
-           nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="inffas32.obj match686.obj" zlib.lib
-        } Else {
-           nmake -f win32/Makefile.msc AS=ml64 LOC="-DASMV -DASMINF -I." OBJA="inffasx64.obj gvmat64.obj zlib.lib
-        }
-        $env:NMAKE_EXTRA="ZLIB_DEF=/DENABLE_ZLIB_STATIC ${env:NMAKE_EXTRA}"
-        cd c:\projects\Opensc
-    }
+      if (!($env:Configuration -Like "*Light*")) {
+          cd C:\zlib
+          If ($env:Platform -Match "x86") {
+             nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="inffas32.obj match686.obj" zlib.lib
+          } Else {
+             nmake -f win32/Makefile.msc AS=ml64 LOC="-DASMV -DASMINF -I." OBJA="inffasx64.obj gvmat64.obj zlib.lib
+          }
+          $env:NMAKE_EXTRA="ZLIB_DEF=/DENABLE_ZLIB_STATIC ${env:NMAKE_EXTRA}"
+          cd c:\projects\Opensc
+      }
   - bash -c "exec 0</dev/null && ./bootstrap"
   # disable features to speed up the script
   - bash -c "exec 0</dev/null && ./configure --disable-openssl --disable-readline --disable-zlib || cat config.log"
