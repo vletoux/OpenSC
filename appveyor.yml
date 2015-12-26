@@ -74,7 +74,8 @@ install:
   - uname -a
 
 build_script:
-  - if (!($env:Configuration -Like "*Light*")) {
+  - ps: >-
+    if (!($env:Configuration -Like "*Light*")) {
         cd C:\zlib
         If ($env:Platform -Match "x86") {
            nmake -f win32/Makefile.msc LOC="-DASMV -DASMINF" OBJA="inffas32.obj match686.obj" zlib.lib
