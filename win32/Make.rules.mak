@@ -61,6 +61,12 @@ OPENSC_FEATURES = $(OPENSC_FEATURES) zlib
 CANDLEFLAGS = -dzlib="C:\zlib-dll" $(CANDLEFLAGS)
 !ENDIF
 
+!IF "$(ZLIB_DEF)" == "/DENABLE_ZLIB_STATIC"
+ZLIB_INCL_DIR = /IC:\zlib
+ZLIB_LIB = C:\zlib\zlib.lib
+OPENSC_FEATURES = $(OPENSC_FEATURES) zlib
+!ENDIF
+
 # Used for MiniDriver
 CNGSDK_INCL_DIR = "/IC:\Program Files (x86)\Microsoft CNG Development Kit\Include"
 # Mandatory path to 'ISO C9x compliant stdint.h and inttypes.h for Microsoft Visual Studio'
