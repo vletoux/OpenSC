@@ -1,8 +1,8 @@
 version: 0.15.0.{build}
 
 platform:
-#  - x86
-  - x64
+  - x86
+#  - x64
 
 configuration:
 #  - Release
@@ -100,4 +100,3 @@ build_script:
 cache:
   - C:\OpenSSL-Win32
   - C:\OpenSSL-Win64
-  - C:\zlib-dll
