@@ -96,6 +96,10 @@ build_script:
   - cd win32 && nmake /f Makefile.mak %NMAKE_ARCH% %NMAKE_EXTRA% VSVER=%VSVER% OpenSC.msi
   - move OpenSC.msi %ARTIFACT%
   - appveyor PushArtifact %ARTIFACT%
+  - ps: >-
+       if (!($env:Configuration -Like "*Debug*")) {
+          Get-ChildItem -recurse . *.pdb | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+	   }
 
 cache:
   - C:\OpenSSL-Win32
