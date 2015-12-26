@@ -15,8 +15,8 @@ environment:
     - VSVER: 12
  #   - VSVER: 10
 
-matrix:
-  allow_failures:
+#matrix:
+#  allow_failures:
     # not included in AppVeyor right now
 #    - platform: x64
 #      VSVER: 10
