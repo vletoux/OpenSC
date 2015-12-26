@@ -2,13 +2,13 @@ version: 0.15.0.{build}
 
 platform:
   - x86
-#  - x64
+  - x64
 
 configuration:
-#  - Release
+  - Release
   - Debug
-#  - Light-Release
-#  - Light-Debug
+  - Light-Release
+  - Light-Debug
 
 environment:
   matrix:
@@ -56,14 +56,6 @@ install:
           C:\WinOpenSSL.exe /SILENT /VERYSILENT /SP- /SUPPRESSMSGBOXES /NORESTART
         }
         $env:NMAKE_EXTRA="OPENSSL_DEF=/DENABLE_OPENSSL ${env:NMAKE_EXTRA}"
-        # the prebuilt zlib is 32 bit only
-        #If ($env:Platform -Match "x86") {
-        #  If (!(Test-Path -Path "C:\zlib-dll" )) {
-        #    appveyor DownloadFile "https://prdownloads.sourceforge.net/libpng/zlib${env:ZLIB_VER}-dll.zip" -FileName zlib-dll.zip
-        #    7z x zlib.zip -oC:\zlib
-        #  }
-        #  $env:NMAKE_EXTRA="ZLIB_DEF=/DENABLE_ZLIB ${env:NMAKE_EXTRA}"
-        #}
         appveyor DownloadFile "https://prdownloads.sourceforge.net/libpng/zlib${env:ZLIB_VER}.zip" -FileName zlib.zip
         7z x zlib.zip -oC:\
         Rename-Item -path "c:\zlib-${env:ZLIB_VER_DOT}" -newName "zlib"
@@ -76,6 +68,7 @@ install:
   - uname -a
 
 build_script:
+  # build zlib.lib as a static library
   - ps: >-
       if (!($env:Configuration -Like "*Light*")) {
           cd C:\zlib
@@ -96,10 +89,7 @@ build_script:
   - cd win32 && nmake /f Makefile.mak %NMAKE_ARCH% %NMAKE_EXTRA% VSVER=%VSVER% OpenSC.msi
   - move OpenSC.msi %ARTIFACT%
   - appveyor PushArtifact %ARTIFACT%
-  - ps: >-
-       if (!($env:Configuration -Like "*Debug*")) {
-          Get-ChildItem -recurse . *.pdb | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
-       }
+  - ps: Get-ChildItem -recurse . *.pdb | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 cache:
   - C:\OpenSSL-Win32
