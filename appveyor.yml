@@ -5,10 +5,10 @@ platform:
   - x64
 
 configuration:
-  - Release
+#  - Release
   - Debug
-  - Light-Release
-  - Light-Debug
+#  - Light-Release
+#  - Light-Debug
 
 environment:
   matrix:
@@ -89,7 +89,7 @@ build_script:
   - cd win32 && nmake /f Makefile.mak %NMAKE_ARCH% %NMAKE_EXTRA% VSVER=%VSVER% OpenSC.msi
   - move OpenSC.msi %ARTIFACT%
   - appveyor PushArtifact %ARTIFACT%
-  - ps: Get-ChildItem -recurse . *.pdb | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
+  - ps: Get-ChildItem -recurse c:\projects\OpenSC -exclude vc*.pdb *.pdb | % { Push-AppveyorArtifact $_.FullName -FileName $_.Name }
 
 cache:
   - C:\OpenSSL-Win32
