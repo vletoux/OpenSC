@@ -487,9 +487,9 @@ static int gids_build_certificate_path(sc_card_t* card, unsigned char containeri
 	char file[9];
 	SC_FUNC_CALLED(card->ctx, SC_LOG_DEBUG_VERBOSE);
 	if (issignatureonly) {
-		snprintf(file, 9, "ksc%02d", containerindex);
+		snprintf(file, 9, "ksc%02x", containerindex);
 	} else {
-		snprintf(file, 9, "kxc%02d", containerindex);
+		snprintf(file, 9, "kxc%02x", containerindex);
 	}
 	r = gids_get_identifiers(card, data->masterfile, data->masterfilesize, "mscp", file, &fileIdentifier, &dataObjectIdentifier);
 	if (r < 0) return SC_ERROR_OBJECT_NOT_FOUND;
@@ -1521,9 +1521,9 @@ static int gids_save_certificate(sc_card_t *card, sc_pkcs15_object_t *certobject
 	// save it to a minidriver file
 	containernum = prkey_info->key_reference - GIDS_FIRST_KEY_IDENTIFIER;
 	if (!(prkey_info->usage & SC_PKCS15_PRKEY_USAGE_DECRYPT)) {
-		snprintf(filename, sizeof(filename), "ksc%02d", containernum);
+		snprintf(filename, sizeof(filename), "ksc%02x", containernum);
 	} else {
-		snprintf(filename, sizeof(filename), "kxc%02d", containernum);
+		snprintf(filename, sizeof(filename), "kxc%02x", containernum);
 	}
 
 	r = gids_does_file_exists(card, "mscp", filename);
