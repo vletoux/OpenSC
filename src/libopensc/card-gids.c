@@ -441,7 +441,7 @@ static int gids_create_file(sc_card_t *card, char* directory, char* filename) {
 	size_t masterfilebuffersize;
 	struct gids_private_data* privatedata = (struct gids_private_data*) card->drv_data;
 	int fileIdentifier, dataObjectIdentifier;
-	int records;
+	size_t records;
 	int offset;
 	gids_mf_record_t* record;
 
@@ -487,9 +487,9 @@ static int gids_build_certificate_path(sc_card_t* card, unsigned char containeri
 	char file[9];
 	SC_FUNC_CALLED(card->ctx, SC_LOG_DEBUG_VERBOSE);
 	if (issignatureonly) {
-		snprintf(file, 9, "ksc%02x", containerindex);
+		snprintf(file, 9, "ksc%02X", containerindex);
 	} else {
-		snprintf(file, 9, "kxc%02x", containerindex);
+		snprintf(file, 9, "kxc%02X", containerindex);
 	}
 	r = gids_get_identifiers(card, data->masterfile, data->masterfilesize, "mscp", file, &fileIdentifier, &dataObjectIdentifier);
 	if (r < 0) return SC_ERROR_OBJECT_NOT_FOUND;
@@ -1067,7 +1067,7 @@ gids_get_container_detail(sc_card_t* card, sc_cardctl_gids_get_container_t* cont
 	}
 
 	// do not check for return code, typically if there is no certificate associated to the key
-	gids_build_certificate_path(card, num, (records[num].wSigKeySizeBits > 0), &(container->certificatepath));
+	gids_build_certificate_path(card, (unsigned char) num, (records[num].wSigKeySizeBits > 0), &(container->certificatepath));
 	
 	return SC_SUCCESS;
 }
@@ -1097,7 +1097,7 @@ gids_select_key_reference(sc_card_t *card, sc_pkcs15_prkey_info_t* key_info) {
 		// search for a key number not used anymore
 		for (i = 0; i < recordsnum; i++) {
 			if (!(records[i].bFlags & CONTAINER_MAP_VALID_CONTAINER)) {
-				key_info->key_reference = GIDS_FIRST_KEY_IDENTIFIER + i;
+				key_info->key_reference = (int) (GIDS_FIRST_KEY_IDENTIFIER + i);
 				return SC_SUCCESS;
 			}
 		}
@@ -1105,7 +1105,7 @@ gids_select_key_reference(sc_card_t *card, sc_pkcs15_prkey_info_t* key_info) {
 		if (recordsnum > GIDS_MAX_CONTAINER) {
 			SC_FUNC_RETURN(card->ctx, SC_LOG_DEBUG_NORMAL, SC_ERROR_NOT_ENOUGH_MEMORY);
 		}
-		key_info->key_reference = GIDS_FIRST_KEY_IDENTIFIER + recordsnum;
+		key_info->key_reference = (int) (GIDS_FIRST_KEY_IDENTIFIER + recordsnum);
 	} else {
 		// key was specified. Search if the key can be used
 		size_t i = key_info->key_reference - GIDS_FIRST_KEY_IDENTIFIER;
@@ -1211,7 +1211,7 @@ static int gids_create_keyfile(sc_card_t *card, sc_pkcs15_object_t *object) {
 	u8 kid = key_info->key_reference;
 	u8 algid = gids_get_crypto_identifier_from_prkey_info(key_info);
 	u8 cmapbuffer[MAX_GIDS_FILE_SIZE];
-	int cmapbuffersize = 0;
+	size_t cmapbuffersize = 0;
 	u8 keymapbuffer[MAX_GIDS_FILE_SIZE];
 	size_t keymapbuffersize = 0;
 	size_t keymaprecordnum = 0;
@@ -1282,11 +1282,11 @@ static int gids_create_keyfile(sc_card_t *card, sc_pkcs15_object_t *object) {
 
 	if (key_info->usage & SC_PKCS15_PRKEY_USAGE_DECRYPT) {
 		keytype = 1; // AT_KEYEXCHANGE
-		records->wKeyExchangeKeySizeBits = key_info->modulus_length;
+		records->wKeyExchangeKeySizeBits = (unsigned short) key_info->modulus_length;
 		keymaprecord->keytype = GIDS_KEY_TYPE_AT_KEYEXCHANGE;
 	} else if (key_info->usage & SC_PKCS15_PRKEY_USAGE_SIGN) {
 		keytype = 2; // AT_SIGNATURE
-		records->wSigKeySizeBits = key_info->modulus_length;
+		records->wSigKeySizeBits = (unsigned short) key_info->modulus_length;
 		keymaprecord->keytype = GIDS_KEY_TYPE_AT_SIGNATURE;
 	} else {
 		SC_FUNC_RETURN(card->ctx, SC_LOG_DEBUG_NORMAL, SC_ERROR_NOT_SUPPORTED);
@@ -1297,7 +1297,7 @@ static int gids_create_keyfile(sc_card_t *card, sc_pkcs15_object_t *object) {
 	if (strcmp(DEFAULT_PRIVATE_KEY_LABEL, object->label) == 0 && strlen(DEFAULT_PRIVATE_KEY_LABEL) + 3 < MAX_CONTAINER_NAME_LEN) {
 		char addition[4] = " 00";
 		addition[1] += containernum % 10;
-		addition[2] += containernum / 10;
+		addition[2] += (containernum < 0xFF) / 10;
 		strcat(object->label, addition);
 	}
 
@@ -1521,9 +1521,9 @@ static int gids_save_certificate(sc_card_t *card, sc_pkcs15_object_t *certobject
 	// save it to a minidriver file
 	containernum = prkey_info->key_reference - GIDS_FIRST_KEY_IDENTIFIER;
 	if (!(prkey_info->usage & SC_PKCS15_PRKEY_USAGE_DECRYPT)) {
-		snprintf(filename, sizeof(filename), "ksc%02x", containernum);
+		snprintf(filename, sizeof(filename), "ksc%02X", containernum);
 	} else {
-		snprintf(filename, sizeof(filename), "kxc%02x", containernum);
+		snprintf(filename, sizeof(filename), "kxc%02X", containernum);
 	}
 
 	r = gids_does_file_exists(card, "mscp", filename);
@@ -1587,7 +1587,7 @@ static int gids_delete_container_num(sc_card_t *card, size_t containernum) {
 	keymaprecord->keyref =(unsigned short) (-1);
 
 	// remove the key, update the key map & cmap file and signal the change
-	r = gids_delete_key_file(card, containernum);
+	r = gids_delete_key_file(card, (int) containernum);
 	SC_TEST_RET(card->ctx, SC_LOG_DEBUG_NORMAL, r, "unable to delete the key file");
 	r = gids_update_cardcf(card, 0, 1);
 	SC_TEST_RET(card->ctx, SC_LOG_DEBUG_NORMAL, r, "unable to update the cardcf file regarding container");
@@ -1607,10 +1607,10 @@ static int gids_delete_cert(sc_card_t *card, sc_pkcs15_object_t* object) {
 	struct sc_pkcs15_cert_info *cert_info = (struct sc_pkcs15_cert_info *) object->data;
 	unsigned short fileIdentifier, DO;
 	u8 masterfilebuffer[MAX_GIDS_FILE_SIZE];
-	int masterfilebuffersize = 0;
+	size_t masterfilebuffersize = 0;
 	gids_mf_record_t *records = (gids_mf_record_t *) masterfilebuffer;
-	int recordcount, recordnum = -1;
-	int i;
+	size_t recordcount, recordnum = (size_t) -1;
+	size_t i;
 	
 
 	assert((object->type & SC_PKCS15_TYPE_CLASS_MASK) == SC_PKCS15_TYPE_CERT);
@@ -1637,7 +1637,7 @@ static int gids_delete_cert(sc_card_t *card, sc_pkcs15_object_t* object) {
 			break;
 		}
 	}
-	if (recordnum == -1) {
+	if (recordnum == (size_t) -1) {
 		SC_FUNC_RETURN(card->ctx, SC_LOG_DEBUG_NORMAL, SC_ERROR_FILE_NOT_FOUND);
 	}
 
